@@ -14,7 +14,7 @@ var ConStr = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextFactory<Contexto>(options =>
     options.UseNpgsql(ConStr));
 
-builder.Services.AddScoped<RegistroService>();
+builder.Services.AddScoped<RegistroDetalleService>();
 builder.Services.AddBlazoredToast();
 
 var app = builder.Build();
