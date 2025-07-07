@@ -1,0 +1,70 @@
+﻿@page "/RegistroIndex"
+
+<section class="container card shadow-lg rounded mt-4 p-0">
+    <header class="bg-light py-4 px-4 border-bottom">
+        <h4 class="m-0 text-center">Listado de Aportes</h4>
+    </header>
+
+    <div class="px-4 py-3 text-end">
+        <a href="#" class="btn btn-success">
+            <i class="bi bi-plus-square me-1"></i> Crear
+        </a>
+    </div>
+
+    <div class="card-body pt-0">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Desde</label>
+                <input type="date" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Hasta</label>
+                <input type="date" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filtrar por</label>
+                <select class="form-select">
+                    <option disabled selected value="">Seleccione una opción</option>
+                    <option value="Id">ID</option>
+                    <option value="Nombre">Nombre</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Valor</label>
+                <div class="input-group">
+                    <input class="form-control" placeholder="Buscar" />
+                    <button class="btn btn-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th class="w-10">Id aporte</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+               
+                  
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <div>
+                <strong>Total de Registros:</strong> 0.00
+            </div>
+            <div>
+                <strong>Total Aportes:</strong> 0.00
+            </div>
+        </div>
+    </div>
+</section>
