@@ -3,6 +3,7 @@ using System;
 using Malvin_Lopez_AP1_P2.Components.Dal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Malvin_Lopez_AP1_P2.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250715005521_AgregarProductos")]
+    partial class AgregarProductos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,7 +76,7 @@ namespace Malvin_Lopez_AP1_P2.Migrations
                     b.ToTable("EntradaDetalles");
                 });
 
-            modelBuilder.Entity("Producto", b =>
+            modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.Producto", b =>
                 {
                     b.Property<int>("ProductoId")
                         .ValueGeneratedOnAdd()
@@ -81,18 +84,9 @@ namespace Malvin_Lopez_AP1_P2.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductoId"));
 
-                    b.Property<string>("Descripcion")
+                    b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("EsCompuesto")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("Existencia")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Peso")
-                        .HasColumnType("integer");
 
                     b.Property<decimal>("PesoUnitario")
                         .HasColumnType("numeric");
@@ -100,62 +94,6 @@ namespace Malvin_Lopez_AP1_P2.Migrations
                     b.HasKey("ProductoId");
 
                     b.ToTable("Productos");
-
-                    b.HasData(
-                        new
-                        {
-                            ProductoId = 1,
-                            Descripcion = "Maní",
-                            EsCompuesto = false,
-                            Existencia = 100,
-                            Peso = 0,
-                            PesoUnitario = 0m
-                        },
-                        new
-                        {
-                            ProductoId = 2,
-                            Descripcion = "Pistachos",
-                            EsCompuesto = false,
-                            Existencia = 100,
-                            Peso = 0,
-                            PesoUnitario = 0m
-                        },
-                        new
-                        {
-                            ProductoId = 3,
-                            Descripcion = "Almendras",
-                            EsCompuesto = false,
-                            Existencia = 100,
-                            Peso = 0,
-                            PesoUnitario = 0m
-                        },
-                        new
-                        {
-                            ProductoId = 4,
-                            Descripcion = "Frutos Mixtos 200gr",
-                            EsCompuesto = true,
-                            Existencia = 0,
-                            Peso = 200,
-                            PesoUnitario = 0m
-                        },
-                        new
-                        {
-                            ProductoId = 5,
-                            Descripcion = "Frutos Mixtos 400gr",
-                            EsCompuesto = true,
-                            Existencia = 0,
-                            Peso = 400,
-                            PesoUnitario = 0m
-                        },
-                        new
-                        {
-                            ProductoId = 6,
-                            Descripcion = "Frutos Mixtos 600gr",
-                            EsCompuesto = true,
-                            Existencia = 0,
-                            Peso = 600,
-                            PesoUnitario = 0m
-                        });
                 });
 
             modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.EntradaDetalle", b =>
