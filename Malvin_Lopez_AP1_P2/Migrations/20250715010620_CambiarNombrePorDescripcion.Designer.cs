@@ -3,6 +3,7 @@ using System;
 using Malvin_Lopez_AP1_P2.Components.Dal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Malvin_Lopez_AP1_P2.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250715010620_CambiarNombrePorDescripcion")]
+    partial class CambiarNombrePorDescripcion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,12 +40,9 @@ namespace Malvin_Lopez_AP1_P2.Migrations
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("PesoTotal")
-                        .HasColumnType("numeric");
-
                     b.HasKey("EntradaId");
 
-                    b.ToTable("Entrada");
+                    b.ToTable("Entradas");
                 });
 
             modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.EntradaDetalle", b =>
@@ -73,12 +73,10 @@ namespace Malvin_Lopez_AP1_P2.Migrations
 
                     b.HasIndex("EntradaId");
 
-                    b.HasIndex("ProductoId");
-
-                    b.ToTable("EntradaDetalle");
+                    b.ToTable("EntradaDetalles");
                 });
 
-            modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.Producto", b =>
+            modelBuilder.Entity("Producto", b =>
                 {
                     b.Property<int>("ProductoId")
                         .ValueGeneratedOnAdd()
@@ -88,21 +86,23 @@ namespace Malvin_Lopez_AP1_P2.Migrations
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("EsCompuesto")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal>("Existencia")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Existencia")
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("Peso")
+                    b.Property<int>("Peso")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PesoUnitario")
                         .HasColumnType("numeric");
 
                     b.HasKey("ProductoId");
 
-                    b.ToTable("Producto");
+                    b.ToTable("Productos");
 
                     b.HasData(
                         new
@@ -110,48 +110,54 @@ namespace Malvin_Lopez_AP1_P2.Migrations
                             ProductoId = 1,
                             Descripcion = "Maní",
                             EsCompuesto = false,
-                            Existencia = 100m,
-                            Peso = 10.00m
+                            Existencia = 100,
+                            Peso = 0,
+                            PesoUnitario = 0m
                         },
                         new
                         {
                             ProductoId = 2,
                             Descripcion = "Pistachos",
                             EsCompuesto = false,
-                            Existencia = 100m,
-                            Peso = 5.00m
+                            Existencia = 100,
+                            Peso = 0,
+                            PesoUnitario = 0m
                         },
                         new
                         {
                             ProductoId = 3,
                             Descripcion = "Almendras",
                             EsCompuesto = false,
-                            Existencia = 100m,
-                            Peso = 20.00m
+                            Existencia = 100,
+                            Peso = 0,
+                            PesoUnitario = 0m
                         },
                         new
                         {
                             ProductoId = 4,
                             Descripcion = "Frutos Mixtos 200gr",
                             EsCompuesto = true,
-                            Existencia = 0m,
-                            Peso = 200.00m
+                            Existencia = 0,
+                            Peso = 200,
+                            PesoUnitario = 0m
                         },
                         new
                         {
                             ProductoId = 5,
                             Descripcion = "Frutos Mixtos 400gr",
                             EsCompuesto = true,
-                            Existencia = 0m,
-                            Peso = 400.00m
+                            Existencia = 0,
+                            Peso = 400,
+                            PesoUnitario = 0m
                         },
                         new
                         {
                             ProductoId = 6,
                             Descripcion = "Frutos Mixtos 600gr",
                             EsCompuesto = true,
-                            Existencia = 0m,
-                            Peso = 600.00m
+                            Existencia = 0,
+                            Peso = 600,
+                            PesoUnitario = 0m
                         });
                 });
 
@@ -163,23 +169,12 @@ namespace Malvin_Lopez_AP1_P2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Malvin_Lopez_AP1_P2.Components.Models.Producto", null)
-                        .WithMany("EntradasDetalles")
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Entrada");
                 });
 
             modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.Entrada", b =>
                 {
                     b.Navigation("EntradaDetalle");
-                });
-
-            modelBuilder.Entity("Malvin_Lopez_AP1_P2.Components.Models.Producto", b =>
-                {
-                    b.Navigation("EntradasDetalles");
                 });
 #pragma warning restore 612, 618
         }

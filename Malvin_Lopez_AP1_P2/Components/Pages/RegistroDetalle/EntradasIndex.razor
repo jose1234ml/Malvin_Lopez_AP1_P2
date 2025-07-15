@@ -1,0 +1,156 @@
+﻿@page "/Entrada/Index"
+@using System.Linq.Expressions
+@using Malvin_Lopez_AP1_P2.Components.Models
+@using Malvin_Lopez_AP1_P2.Components.Services
+@inject EntradaService EntradaService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<PageTitle>Registro de Entradas</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-center align-items-center p-3">
+            <h4 class="card-title mb-0">Consulta de Entradas</h4>
+        </div>
+        <div class="card-body">
+
+            <!-- Filtro y búsqueda -->
+            <div class="row align-items-center mb-2">
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="Id">Entrada Id</option>
+                        <option value="Concepto">Concepto</option>
+                    </InputSelect>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control" placeholder="Buscar" @bind="ValorFiltro" />
+                        <button class="btn btn-primary" @onclick="Filtrar">
+                            <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+                <div class="col text-end">
+                    <a class="btn btn-success" href="/Entrada/Create">
+                        <i class="bi bi-plus-square me-1"></i> Crear
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtro por fechas -->
+            <div class="row align-items-center mb-4">
+                <div class="col-3">
+                    <label class="form-label fw-bold">Desde</label>
+                    <InputDate class="form-control" @bind-Value="FechaDesde" />
+                </div>
+                <div class="col-3">
+                    <label class="form-label fw-bold">Hasta</label>
+                    <InputDate class="form-control" @bind-Value="FechaHasta" />
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <table class="table table-hover">
+                <thead class="table-light text-black">
+                    <tr>
+                        <th>Entrada Id</th>
+                        <th>Concepto</th>
+                        <th>Fecha</th>
+                        <th class="text-end pe-5">Peso Total</th>
+                        <th>Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Entradas.Any())
+                    {
+                        @foreach (var entrada in Entradas)
+                        {
+                            <tr>
+                                <td>@entrada.EntradaId</td>
+                                <td>@entrada.Concepto</td>
+                                <td>@entrada.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end pe-5">@entrada.PesoTotal.ToString("N2") kg</td>
+                                <td>
+                                    <a class="btn btn-outline-primary btn-sm" href="/Entrada/Edit/@entrada.EntradaId">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No hay entradas registradas.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Resumen -->
+            <div class="d-flex justify-content-between mt-3">
+                <div><strong>Conteo:</strong> @Conteo</div>
+                <div><strong>Total Peso:</strong> @TotalPeso.ToString("N2") kg</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Entrada> Entradas = new();
+    private string Filtro { get; set; } = "Id";
+    private string ValorFiltro { get; set; } = string.Empty;
+    private DateTime? FechaDesde { get; set; }
+    private DateTime? FechaHasta { get; set; }
+    private int Conteo { get; set; } = 0;
+    private decimal TotalPeso { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEntradas();
+    }
+
+    private async Task CargarEntradas(Expression<Func<Entrada, bool>>? criterio = null)
+    {
+        criterio ??= e => true;
+        var lista = await EntradaService.Listar(criterio);
+
+        if (FechaDesde.HasValue)
+            lista = lista.Where(e => e.Fecha.Date >= FechaDesde.Value.Date).ToList();
+        if (FechaHasta.HasValue)
+            lista = lista.Where(e => e.Fecha.Date <= FechaHasta.Value.Date).ToList();
+
+        Entradas = lista.OrderByDescending(e => e.Fecha).ToList();
+        Conteo = Entradas.Count;
+        TotalPeso = Entradas.Sum(e => e.PesoTotal);
+    }
+
+    private async Task Filtrar()
+    {
+        try
+        {
+            Expression<Func<Entrada, bool>> criterio = e => true;
+
+            if (!string.IsNullOrWhiteSpace(ValorFiltro))
+            {
+                if (Filtro == "Concepto")
+                    criterio = e => e.Concepto != null && e.Concepto.ToLower().Contains(ValorFiltro.ToLower());
+                else if (Filtro == "Id" && int.TryParse(ValorFiltro, out int id))
+                    criterio = e => e.EntradaId == id;
+            }
+
+            await CargarEntradas(criterio);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error al filtrar: {ex.Message}");
+        }
+    }
+
+    private void IrCrear()
+    {
+        NavigationManager.NavigateTo("/Entrada/Create");
+    }
+}
