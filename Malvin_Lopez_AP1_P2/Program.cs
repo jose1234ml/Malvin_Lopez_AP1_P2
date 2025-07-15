@@ -16,8 +16,6 @@ builder.Services.AddDbContextFactory<Contexto>(options =>
     options.UseNpgsql(ConStr));
 
 builder.Services.AddScoped<EntradaService>();
-builder.Services.AddScoped<ProductoService>();
-
 
 builder.Services.AddBlazoredToast();
 
