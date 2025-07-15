@@ -1,0 +1,161 @@
+﻿@page "/Entrada/Edit/{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+@inject EntradaService EntradaService
+
+@using Malvin_Lopez_AP1_P2.Components.Models
+
+<PageTitle>Editar Entrada</PageTitle>
+
+<EditForm Model="Entrada" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header d-flex justify-content-center align-items-center p-3 bg-primary text-white">
+                <h5 class="card-title">Editar Entrada</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Entrada Id</label>
+                            <input class="form-control" value="@Entrada.EntradaId" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <InputDate class="form-control" @bind-Value="Entrada.Fecha" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Concepto</label>
+                            <InputText class="form-control" @bind-Value="Entrada.Concepto" maxlength="500" />
+                            <ValidationMessage For="@(() => Entrada.Concepto)" class="text-danger" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Peso Total</label>
+                            <input class="form-control" value="@Entrada.PesoTotal.ToString("N2")" disabled />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mostrar detalles existentes -->
+                <div class="mt-4 border border-dark p-2">
+                    <label class="form-label">Productos</label>
+                    <table class="table table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Peso Unitario</th>
+                                <th>Peso Parcial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in Entrada.EntradaDetalle)
+                            {
+                                var producto = Productos.FirstOrDefault(p => p.ProductoId == detalle.ProductoId);
+                                <tr>
+                                    <td>@producto?.Descripcion</td>
+                                    <td>@detalle.Cantidad</td>
+                                    <td>@producto?.Peso.ToString("N2") kg</td>
+                                    <td>@((producto?.Peso ?? 0) * detalle.Cantidad).ToString("N2") kg</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-center">
+                <div class="btn-group" role="group" aria-label="Acciones Entrada">
+                    <a class="btn btn-outline-secondary" href="/Entrada/Index">Volver</a>
+                    <button type="submit" class="btn btn-outline-success">Guardar Cambios</button>
+                    <button type="button" class="btn btn-outline-danger" @onclick="() => MostrarModal = true">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<!-- Modal de confirmación para eliminar -->
+@if (MostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="() => MostrarModal = false" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Está seguro que desea eliminar esta entrada?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => MostrarModal = false">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Entrada Entrada { get; set; } = new();
+    private List<Producto> Productos { get; set; } = new();
+    private bool MostrarModal { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var entradaBuscada = await EntradaService.Buscar(Id);
+
+        if (entradaBuscada is null)
+        {
+            ToastService.ShowError("Entrada no encontrada.");
+            NavigationManager.NavigateTo("/Entrada/Index");
+            return;
+        }
+
+        Entrada = entradaBuscada;
+        Productos = await EntradaService.ListarProductos();
+    }
+
+    private async Task Guardar()
+    {
+        Entrada.PesoTotal = Entrada.EntradaDetalle.Sum(d =>
+        {
+            var prod = Productos.FirstOrDefault(p => p.ProductoId == d.ProductoId);
+            return (prod?.Peso ?? 0) * d.Cantidad;
+        });
+
+        var exito = await EntradaService.Guardar(Entrada);
+
+        if (exito)
+        {
+            ToastService.ShowSuccess("Entrada actualizada correctamente.");
+            NavigationManager.NavigateTo("/Entrada/Index");
+        }
+        else
+        {
+            ToastService.ShowError("Error al guardar la entrada.");
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        MostrarModal = false;
+        var exito = await EntradaService.Eliminar(Entrada.EntradaId);
+
+        if (exito)
+        {
+            ToastService.ShowSuccess("Entrada eliminada correctamente.");
+            NavigationManager.NavigateTo("/Entrada/Index");
+        }
+        else
+        {
+            ToastService.ShowError("Error al eliminar la entrada.");
+        }
+    }
+}

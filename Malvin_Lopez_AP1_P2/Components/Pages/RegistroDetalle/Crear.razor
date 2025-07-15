@@ -1,176 +1,215 @@
-﻿@page "/Entradas/Create"
-
-@inject EntradaService EntradaService
-@inject ProductoService ProductoService
+﻿@page "/Entrada/Create"
+@rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject IToastService ToastService
+@inject EntradaService EntradaService
 
-<h3>Detalle de Entrada</h3>
+<PageTitle>Crear Entrada</PageTitle>
 
-<div class="card shadow mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Productos Utilizados / Detalles de Entrada</h5>
-    </div>
-    <div class="card-body">
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">Producto</label>
-                <select class="form-select" @bind="ProductoIdSeleccionado">
-                    <option disabled selected value="0">Seleccione un producto</option> 
-                    @foreach (var producto in Productos)
-                    {
-                        <option value="@producto.ProductoId">@producto.Descripcion</option>
-                    }
-                </select>
+<EditForm Model="Entrada" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center p-3">
+                <h5 class="card-title m-0">Crear Entrada</h5>
             </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Entrada Id</label>
+                            <input class="form-control" value="@Entrada.EntradaId" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <InputDate class="form-control" @bind-Value="Entrada.Fecha" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Concepto</label>
+                            <InputText class="form-control" @bind-Value="Entrada.Concepto" maxlength="500" />
+                            <ValidationMessage For="@(() => Entrada.Concepto)" class="text-danger" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Peso Total</label>
+                            <input class="form-control" value="@Entrada.PesoTotal.ToString("N2")" disabled />
+                        </div>
+                    </div>
+                </div>
 
-            <div class="col-md-3">
-                <label class="form-label">Cantidad</label>
-                <input type="number" class="form-control" @bind="Cantidad" min="1" />
-            </div>
+                <div class="border border-success rounded p-3 mt-4">
+                    <label class="form-label">Productos utilizados</label>
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <InputSelect class="form-select" @bind-Value="productoSeleccionado">
+                                <option value="0">Seleccione un producto</option>
+                                @foreach (var prod in Productos)
+                                {
+                                    <option value="@prod.ProductoId">@prod.Descripcion</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-3">
+                            <InputNumber class="form-control" @bind-Value="CantidadSeleccionada" />
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-primary" @onclick="AgregarProducto">Agregar</button>
+                        </div>
+                    </div>
 
-            <div class="col-md-3 d-grid align-items-end">
-                <button class="btn btn-primary" @onclick="AgregarDetalle">+ Agregar</button>
-            </div>
-        </div>
-
-        <div class="table-responsive mb-3">
-            <table class="table table-bordered table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Peso Total (g)</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Entrada.EntradaDetalle.Any())
-                    {
-                        @foreach (var detalle in Entrada.EntradaDetalle)
-                        {
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
                             <tr>
-                                <td>@detalle.EntradaDetalleId</td>
-                                <td>@detalle.NombreProducto</td>
-                                <td>@detalle.Cantidad</td>
-                                <td>@detalle.PesoTotal.ToString("N2")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-danger" @onclick="() => RemoverDetalle(detalle)">Quitar</button>
-                                </td>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Peso Unitario</th>
+                                <th>Peso Parcial</th>
+                                <th class="text-center">Eliminar</th>
                             </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No hay productos agregados.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <div class="row justify-content-end mb-4">
-            <div class="col-md-4">
-                <label class="form-label">Peso Total (g)</label>
-                <input class="form-control" readonly value="@Entrada.EntradaDetalle.Sum(d => d.PesoTotal).ToString("N2")" />
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in Entrada.EntradaDetalle)
+                            {
+                                var producto = Productos.FirstOrDefault(p => p.ProductoId == detalle.ProductoId);
+                                <tr>
+                                    <td class="fw-semibold">@producto?.Descripcion</td>
+                                    <td>@detalle.Cantidad</td>
+                                    <td>@(producto?.Peso.ToString("N2") ?? "0") kg</td>
+                                    <td>@(((producto?.Peso ?? 0) * detalle.Cantidad).ToString("N2")) kg</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-danger" type="button" @onclick="() => EliminarDetalle(detalle)" title="Eliminar producto">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <div class="btn-group" role="group" aria-label="Acciones entrada">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <button type="button" class="btn btn-primary" @onclick="LimpiarFormulario">Limpiar</button>
+                    <a href="/Entrada/Index" class="btn btn-secondary">Volver</a>
+                </div>
             </div>
         </div>
-
-        <div class="d-flex justify-content-end gap-2">
-            <button class="btn btn-success" @onclick="Guardar">
-                <i class="bi bi-save me-1"></i> Guardar
-            </button>
-            <button class="btn btn-secondary" @onclick="Volver">
-                <i class="bi bi-arrow-left me-1"></i> Volver
-            </button>
-            <button class="btn btn-info text-white" @onclick="Nuevo">
-                <i class="bi bi-plus-circle me-1"></i> Nuevo
-            </button>
-        </div>
     </div>
-</div>
+</EditForm>
 
 @code {
-    private Entrada Entrada = new();
-    private List<Producto> Productos = new();
-    private int ProductoIdSeleccionado = 0; 
-    private int Cantidad = 1;
+    public Entrada Entrada { get; set; } = new Entrada
+        {
+            Fecha = DateTime.UtcNow,
+            Concepto = string.Empty,
+            PesoTotal = 0,
+            EntradaDetalle = new List<EntradaDetalle>()
+        };
+
+    public List<Producto> Productos { get; set; } = new();
+    public int productoSeleccionado { get; set; }
+    public int CantidadSeleccionada { get; set; } = 1;
 
     protected override async Task OnInitializedAsync()
     {
-        Productos = await ProductoService.Listar(p => true);
-        Nuevo();
-    }
-
-    private void AgregarDetalle()
-    {
-        var producto = Productos.FirstOrDefault(p => p.ProductoId == ProductoIdSeleccionado);
-        if (ProductoIdSeleccionado == 0 || producto == null || Cantidad <= 0)
-        {
-            ToastService.ShowWarning("Seleccione un producto válido y una cantidad mayor a cero.");
-            return;
-        }
-
-        Entrada.EntradaDetalle.Add(new EntradaDetalle
-        {
-            
-            ProductoId = producto.ProductoId,
-            NombreProducto = producto.Descripcion, 
-            Cantidad = Cantidad,
-            PesoTotal = producto.PesoUnitario * Cantidad
-        });
-
-        Cantidad = 1;
-        ProductoIdSeleccionado = 0;
-        StateHasChanged();
-    }
-
-    private void RemoverDetalle(EntradaDetalle detalle)
-    {
-        Entrada.EntradaDetalle.Remove(detalle);
-        StateHasChanged(); 
+        Productos = await EntradaService.ListarProductos();
     }
 
     private async Task Guardar()
     {
-        if (!Entrada.EntradaDetalle.Any())
+        if (string.IsNullOrWhiteSpace(Entrada.Concepto))
         {
-            ToastService.ShowWarning("Debe agregar al menos un producto para guardar la entrada.");
+            ToastService.ShowWarning("Debe agregar un concepto.");
             return;
         }
 
-        Entrada.Concepto = $"Entrada del {DateTime.Now:dd/MM/yyyy}"; 
+        if (!Entrada.EntradaDetalle.Any())
+        {
+            ToastService.ShowWarning("Debe agregar al menos un producto.");
+            return;
+        }
 
-        bool guardado = await EntradaService.Guardar(Entrada);
+        Entrada.PesoTotal = Entrada.EntradaDetalle.Sum(d =>
+        {
+            var producto = Productos.FirstOrDefault(p => p.ProductoId == d.ProductoId);
+            return (producto?.Peso ?? 0) * d.Cantidad;
+        });
+
+        var guardado = await EntradaService.Guardar(Entrada);
         if (guardado)
         {
             ToastService.ShowSuccess("Entrada guardada correctamente.");
-           
-            NavigationManager.NavigateTo("/Entradas/Index"); 
+            NavigationManager.NavigateTo("/Entrada/Index");
         }
         else
         {
-            ToastService.ShowError("Ocurrió un error al guardar la entrada.");
+            ToastService.ShowError("Error al guardar la entrada.");
         }
     }
 
-    private void Volver()
+    private void AgregarProducto()
     {
-        NavigationManager.NavigateTo("/Entradas/Index");
+        if (productoSeleccionado == 0)
+        {
+            ToastService.ShowWarning("Seleccione un producto.");
+            return;
+        }
+
+        var producto = Productos.FirstOrDefault(p => p.ProductoId == productoSeleccionado);
+        if (producto is null)
+        {
+            ToastService.ShowError("Producto no encontrado.");
+            return;
+        }
+
+        if (CantidadSeleccionada <= 0)
+        {
+            ToastService.ShowWarning("Cantidad inválida.");
+            return;
+        }
+
+        if (Entrada.EntradaDetalle.Any(d => d.ProductoId == producto.ProductoId))
+        {
+            ToastService.ShowWarning("Este producto ya fue agregado.");
+            return;
+        }
+
+        Entrada.EntradaDetalle.Add(new EntradaDetalle
+            {
+                ProductoId = producto.ProductoId,
+                Cantidad = CantidadSeleccionada
+            });
+
+        productoSeleccionado = 0;
+        CantidadSeleccionada = 1;
+        CalcularPesoTotal();
     }
 
-    private void Nuevo()
+    private void EliminarDetalle(EntradaDetalle detalle)
+    {
+        Entrada.EntradaDetalle.Remove(detalle);
+        CalcularPesoTotal();
+    }
+
+    private void CalcularPesoTotal()
+    {
+        Entrada.PesoTotal = Entrada.EntradaDetalle.Sum(d =>
+        {
+            var producto = Productos.FirstOrDefault(p => p.ProductoId == d.ProductoId);
+            return (producto?.Peso ?? 0) * d.Cantidad;
+        });
+    }
+
+    private void LimpiarFormulario()
     {
         Entrada = new Entrada
-        {
-            Fecha = DateTime.Today,
-            EntradaDetalle = new List<EntradaDetalle>() 
-        };
-        ProductoIdSeleccionado = 0; 
-        Cantidad = 1; 
-        StateHasChanged(); 
+            {
+                Fecha = DateTime.UtcNow,
+                Concepto = string.Empty,
+                PesoTotal = 0,
+                EntradaDetalle = new List<EntradaDetalle>()
+            };
+        productoSeleccionado = 0;
+        CantidadSeleccionada = 1;
     }
 }

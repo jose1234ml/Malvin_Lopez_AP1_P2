@@ -7,12 +7,10 @@ public class EntradaDetalle
 {
     [Key]
     public int EntradaDetalleId { get; set; }
-
+    public string NombreProducto { get; set; } = string.Empty;
     public int EntradaId { get; set; }
 
     public int ProductoId { get; set; }
-
-    public string NombreProducto { get; set; } = string.Empty;
 
     public decimal PesoTotal { get; set; }
 

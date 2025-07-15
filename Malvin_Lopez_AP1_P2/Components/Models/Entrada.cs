@@ -10,6 +10,7 @@ public class Entrada
 
     [Required(ErrorMessage = "El campo concepto es obligatorio.")]
     public string Concepto { get; set; } = string.Empty;
+    public decimal PesoTotal { get; set; }
 
     [Required]
     public DateTime Fecha { get; set; } = DateTime.Today;
