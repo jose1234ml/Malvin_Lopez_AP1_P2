@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Malvin_Lopez_AP1_P2.Components.Dal;
+﻿using Malvin_Lopez_AP1_P2.Components.Dal;
 using Malvin_Lopez_AP1_P2.Components.Models;
+using Malvin_Lopez_AP1_P2.Components.Service;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Malvin_Lopez_AP1_P2.Components.Services;
@@ -9,11 +10,13 @@ public class EntradaService
 {
     private readonly Contexto _contexto;
     private readonly IDbContextFactory<Contexto> _contextFactory;
+    private readonly ProductoService _productoService;
 
-    public EntradaService(Contexto contexto, IDbContextFactory<Contexto> contextFactory)
+    public EntradaService(Contexto contexto, IDbContextFactory<Contexto> contextFactory, ProductoService productoService)
     {
         _contexto = contexto;
         _contextFactory = contextFactory;
+        _productoService = productoService;
     }
 
     public async Task<List<Entrada>> Listar(Expression<Func<Entrada, bool>> criterio)
@@ -36,9 +39,29 @@ public class EntradaService
     public async Task<bool> Guardar(Entrada entrada)
     {
         if (entrada.EntradaId == 0)
-            return await Insertar(entrada);
+        {
+            var insertado = await Insertar(entrada);
+            if (!insertado)
+                return false;
+
+            // Reducir existencias para cada detalle
+            foreach (var detalle in entrada.EntradaDetalle)
+            {
+                bool reduccionOk = await _productoService.ReducirExistencia(detalle.ProductoId, detalle.Cantidad);
+                if (!reduccionOk)
+                {
+                    // Aquí puedes agregar rollback o manejo de errores según convenga
+                    return false;
+                }
+            }
+
+            return true;
+        }
         else
+        {
+            // Para modificar entrada, solo actualiza la entrada sin cambiar existencias
             return await Modificar(entrada);
+        }
     }
 
     private async Task<bool> Insertar(Entrada entrada)

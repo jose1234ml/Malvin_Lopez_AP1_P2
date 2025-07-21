@@ -1,7 +1,7 @@
 using Blazored.Toast;
 using Malvin_Lopez_AP1_P2.Components;
 using Malvin_Lopez_AP1_P2.Components.Dal;
-
+using Malvin_Lopez_AP1_P2.Components.Service;
 using Malvin_Lopez_AP1_P2.Components.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +16,7 @@ builder.Services.AddDbContextFactory<Contexto>(options =>
     options.UseNpgsql(ConStr));
 
 builder.Services.AddScoped<EntradaService>();
+builder.Services.AddScoped<ProductoService>();
 
 builder.Services.AddBlazoredToast();
 
