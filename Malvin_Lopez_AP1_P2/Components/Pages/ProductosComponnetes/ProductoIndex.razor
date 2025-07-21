@@ -1,0 +1,109 @@
+﻿@page "/Producto/Index"
+@using Malvin_Lopez_AP1_P2.Components.Service
+@rendermode InteractiveServer
+@inject ProductoService productoService
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h4 class="card-title text-center">Registro de Productos</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-3">
+                    <label class="col-form-label"><strong> Filtrar por</strong></label>
+                </div>
+                <div class="col text-end">
+                    <a href="/Productos/Crear" class="btn btn-success">
+                        <span class="bi bi-plus-square"></span> Crear
+                    </a>
+                </div>
+            </div>
+
+            <div class="row align-items-center mb-3">
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="filtro">
+                        <option value="Id">Producto Id</option>
+                        <option value="Descripcion">Descripcion</option>
+                    </InputSelect>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control"
+                               placeholder="Buscar" @bind-value="valorFiltro" />
+                        <button type="button" class="btn btn-primary" @onclick="FiltrarProductos">
+                            <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-hover">
+                <thead class="table table-striped text-black">
+                    <tr>
+                        <th>Producto Id</th>
+                        <th>Descripción</th>
+                        <th>Peso</th>
+                        <th>Existencia</th>
+                        <th>Compuesto</th>
+                        <th>Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in productos)
+                    {
+                        <tr>
+                            <td>@p.ProductoId</td>
+                            <td>@p.Descripcion</td>
+                            <td>@p.Peso</td>
+                            <td>@p.Existencia</td>
+                            <td>@(p.EsCompuesto ? "Sí" : "No")</td>
+                            <td>
+                                <a href="/Productos/Modificar/@p.ProductoId" class="btn btn-outline-primary">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Producto> productos = new();
+    private string filtro = "Id";
+    private string valorFiltro { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = (await productoService.Listar(p => true))
+            .OrderBy(p => p.ProductoId)
+            .ToList();
+    }
+
+    private async Task FiltrarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(valorFiltro))
+        {
+            productos = (await productoService.Listar(p => true))
+                .OrderBy(p => p.ProductoId)
+                .ToList();
+            return;
+        }
+
+        if (filtro == "Descripcion")
+        {
+            productos = await productoService.Listar(
+                p => p.Descripcion != null && p.Descripcion.ToLower().Contains(valorFiltro.ToLower()));
+        }
+        else if (filtro == "Id" && int.TryParse(valorFiltro, out int id))
+        {
+            productos = (await productoService.Listar(p => p.ProductoId == id))
+                .OrderBy(p => p.ProductoId)
+                .ToList();
+        }
+    }
+}

@@ -1,0 +1,134 @@
+﻿@page "/Productos/Modificar/{ProductoId:int}"
+@using Malvin_Lopez_AP1_P2.Components.Service
+@rendermode InteractiveServer
+@inject ProductoService productoService
+@inject NavigationManager NavigationManager
+@inject IToastService toastService
+
+<PageTitle>Modificar  Producto</PageTitle>
+
+<EditForm Model="@producto" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Modificar Producto</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="id" class="form-label">Producto Id</label>
+                    <input id="id" class="form-control" value="@producto.ProductoId" disabled />
+                </div>
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <InputText id="descripcion" class="form-control" @bind-Value="producto.Descripcion" />
+                    <ValidationMessage For="@(() => producto.Descripcion)" />
+                </div>
+                <div class="mb-3">
+                    <label for="peso" class="form-label">Peso</label>
+                    <InputNumber id="peso" class="form-control" @bind-Value="producto.Peso" />
+                    <ValidationMessage For="@(() => producto.Peso)" />
+                </div>
+                <div class="mb-3">
+                    <label for="existencia" class="form-label">Existencia</label>
+                    <InputNumber id="existencia" class="form-control" @bind-Value="producto.Existencia" />
+                    <ValidationMessage For="@(() => producto.Existencia)" />
+                </div>
+                <div class="mb-3">
+                    <label for="esCompuesto" class="form-label">¿Es Compuesto?</label>
+                    <InputSelect id="esCompuesto" class="form-select" @bind-Value="producto.EsCompuesto">
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => producto.EsCompuesto)" />
+                </div>
+
+                <div class="d-flex justify-content-center mt-4">
+                    <div class="btn-group" role="group">
+                        <a href="/Producto/Index" class="btn btn-outline-secondary">Volver</a>
+                        <button type="submit" class="btn btn-outline-success">Guardar</button>
+                        <button type="button" class="btn btn-outline-danger bi bi-trash" @onclick="() => mostrarModalEliminar = true"> Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (mostrarModalEliminar)
+{
+    <div class="modal fade show d-block bg-opacity-50" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="() => mostrarModalEliminar = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de que desea eliminar este producto de forma permanente?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => mostrarModalEliminar = false">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int ProductoId { get; set; }
+
+    private Producto producto = new();
+    private bool mostrarModalEliminar = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        producto = await productoService.Buscar(ProductoId);
+    }
+
+    private async Task Guardar()
+    {
+        try
+        {
+            var guardado = await productoService.Guardar(producto);
+            if (guardado)
+            {
+                toastService.ShowSuccess("Producto editado correctamente.");
+                NavigationManager.NavigateTo("/Producto/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo guardar el producto.");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        try
+        {
+            var eliminado = await productoService.Eliminar(producto.ProductoId);
+            if (eliminado)
+            {
+                toastService.ShowSuccess("Producto eliminado.");
+                NavigationManager.NavigateTo("/Producto/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo eliminar el producto.");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error: {ex.Message}");
+        }
+    }
+}

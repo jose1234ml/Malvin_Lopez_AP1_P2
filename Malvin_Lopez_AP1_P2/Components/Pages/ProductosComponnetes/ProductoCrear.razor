@@ -1,0 +1,89 @@
+﻿@page "/Productos/Crear"
+@using Malvin_Lopez_AP1_P2.Components.Service
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject ProductoService productoService
+@inject IToastService ToastService
+
+<PageTitle>Crear Producto</PageTitle>
+
+<EditForm Model="@producto" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Crear Producto</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="id" class="form-label">Producto Id</label>
+                    <input id="id" class="form-control" value="0" disabled />
+                </div>
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <InputText id="descripcion" class="form-control" @bind-Value="producto.Descripcion" />
+                    <ValidationMessage For="@(() => producto.Descripcion)" />
+                </div>
+                <div class="mb-3">
+                    <label for="peso" class="form-label">Peso</label>
+                    <InputNumber id="peso" class="form-control" @bind-Value="producto.Peso" />
+                    <ValidationMessage For="@(() => producto.Peso)" />
+                </div>
+                <div class="mb-3">
+                    <label for="existencia" class="form-label">Existencia</label>
+                    <InputNumber id="existencia" class="form-control" @bind-Value="producto.Existencia" />
+                    <ValidationMessage For="@(() => producto.Existencia)" />
+                </div>
+                <div class="mb-3">
+                    <label for="esCompuesto" class="form-label">¿Es Compuesto?</label>
+                    <InputSelect id="esCompuesto" class="form-select" @bind-Value="producto.EsCompuesto">
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => producto.EsCompuesto)" />
+                </div>
+
+                <div class="d-flex justify-content-center mt-4">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary" @onclick="Limpiar">Limpiar</button>
+                        <button type="submit" class="btn btn-outline-success">Guardar</button>
+                        <a href="/Producto/Index" class="btn btn-outline-secondary">Volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Producto producto = new();
+
+    private async Task Guardar()
+    {
+        try
+        {
+            var guardado = await productoService.Guardar(producto);
+            if (guardado)
+            {
+                ToastService.ShowSuccess("Producto guardado correctamente.");
+                NavigationManager.NavigateTo("/Producto/Index");
+            }
+            else
+            {
+                ToastService.ShowError("No se pudo guardar el producto.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error: {ex.Message}");
+            Console.WriteLine($"Error al guardar: {ex.Message}");
+        }
+    }
+
+    private void Limpiar()
+    {
+        producto = new Producto();
+    }
+}
