@@ -104,8 +104,8 @@
     private string ValorFiltro { get; set; } = string.Empty;
     private DateTime? FechaDesde { get; set; }
     private DateTime? FechaHasta { get; set; }
-    private int Conteo { get; set; } = 0;
-    private decimal TotalPeso { get; set; } = 0;
+    private int Conteo { get; set; }
+    private decimal TotalPeso { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,12 +117,16 @@
         criterio ??= e => true;
         var lista = await EntradaService.Listar(criterio);
 
+        // --- Mejora: Filtrado por rango de fechas (si aplica) ---
         if (FechaDesde.HasValue)
             lista = lista.Where(e => e.Fecha.Date >= FechaDesde.Value.Date).ToList();
+
         if (FechaHasta.HasValue)
             lista = lista.Where(e => e.Fecha.Date <= FechaHasta.Value.Date).ToList();
 
         Entradas = lista.OrderByDescending(e => e.Fecha).ToList();
+
+        // --- Mejora: Actualizar conteo y total peso ---
         Conteo = Entradas.Count;
         TotalPeso = Entradas.Sum(e => e.PesoTotal);
     }
@@ -148,9 +152,5 @@
             ToastService.ShowError($"Error al filtrar: {ex.Message}");
         }
     }
-
-    private void IrCrear()
-    {
-        NavigationManager.NavigateTo("/Entrada/Create");
-    }
 }
+

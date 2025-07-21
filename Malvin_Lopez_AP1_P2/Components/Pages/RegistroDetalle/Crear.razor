@@ -1,4 +1,5 @@
 ﻿@page "/Entrada/Create"
+@using Malvin_Lopez_AP1_P2.Components.Service
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject IToastService ToastService
@@ -99,12 +100,12 @@
 
 @code {
     public Entrada Entrada { get; set; } = new Entrada
-        {
-            Fecha = DateTime.UtcNow,
-            Concepto = string.Empty,
-            PesoTotal = 0,
-            EntradaDetalle = new List<EntradaDetalle>()
-        };
+    {
+        Fecha = DateTime.UtcNow,
+        Concepto = string.Empty,
+        PesoTotal = 0,
+        EntradaDetalle = new List<EntradaDetalle>()
+    };
 
     public List<Producto> Productos { get; set; } = new();
     public int productoSeleccionado { get; set; }
@@ -129,16 +130,13 @@
             return;
         }
 
-        Entrada.PesoTotal = Entrada.EntradaDetalle.Sum(d =>
-        {
-            var producto = Productos.FirstOrDefault(p => p.ProductoId == d.ProductoId);
-            return (producto?.Peso ?? 0) * d.Cantidad;
-        });
+        CalcularPesoTotal();
 
         var guardado = await EntradaService.Guardar(Entrada);
+
         if (guardado)
         {
-            ToastService.ShowSuccess("Entrada guardada correctamente.");
+            ToastService.ShowSuccess("Entrada guardada y existencias actualizadas correctamente.");
             NavigationManager.NavigateTo("/Entrada/Index");
         }
         else
@@ -175,10 +173,10 @@
         }
 
         Entrada.EntradaDetalle.Add(new EntradaDetalle
-            {
-                ProductoId = producto.ProductoId,
-                Cantidad = CantidadSeleccionada
-            });
+        {
+            ProductoId = producto.ProductoId,
+            Cantidad = CantidadSeleccionada
+        });
 
         productoSeleccionado = 0;
         CantidadSeleccionada = 1;
@@ -203,12 +201,12 @@
     private void LimpiarFormulario()
     {
         Entrada = new Entrada
-            {
-                Fecha = DateTime.UtcNow,
-                Concepto = string.Empty,
-                PesoTotal = 0,
-                EntradaDetalle = new List<EntradaDetalle>()
-            };
+        {
+            Fecha = DateTime.UtcNow,
+            Concepto = string.Empty,
+            PesoTotal = 0,
+            EntradaDetalle = new List<EntradaDetalle>()
+        };
         productoSeleccionado = 0;
         CantidadSeleccionada = 1;
     }
